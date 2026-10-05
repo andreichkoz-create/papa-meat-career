@@ -14,7 +14,7 @@ function home(){
  let r=ROLES[state.role],next=ROLES[state.role+1],pct=next?Math.min(100,state.xp/next.need*100):100;
  shell('<section class="game-home">'+
  '<div class="home-profile"><div class="avatar">А</div><div><b>АНДРЕЙ</b><small>'+r.name+' · День '+state.day+'</small></div><div class="home-xp"><span>'+state.xp+' XP</span><div class="progress"><i style="width:'+pct+'%"></i></div></div></div>'+
- '<div class="home-hero"><div class="hero-logo"><img src="assets/logo.png" onerror="this.style.display=\'none\'"><h1>ПАПА ЛЮБИТ МЯСО</h1><b>КАРЬЕРА</b></div><div class="manager-art"><div class="manager-placeholder">УПРАВЛЯЮЩИЙ</div></div><div class="hero-copy"><b>ВЫБЕРИ СВОЮ РОЛЬ</b><span>и развивайся вместе с нами</span></div></div>'+
+ '<div class="home-hero"><div class="hero-logo"><img src="e_6SkIhRSoj03SwB2nKhQerWU6MoFoBFfNOKeBCg_ZQFPKunWHBqjsDNkFXj2QRLZPrL9gctVnXvKHqaYKrntNAUh9BfaA.jpg" alt="Папа любит мясо"><h1>ПАПА ЛЮБИТ МЯСО</h1><b>КАРЬЕРА</b></div><div class="manager-art"><img src="ONOEwhE7Pln7Q0d4Um4j5-lWSBtOm2brqTXMBWPCb_efRGhprR88k0i7xCLzuR1Vr47DZjrah3ATuHnxleXMH-xs.jpg" alt="Управляющий"></div><div class="hero-copy"><b>ВЫБЕРИ СВОЮ РОЛЬ</b><span>и развивайся вместе с нами</span></div></div>'+
  '<div class="home-stats">'+metric('💵 Деньги',state.money+' ₽')+metric('⭐ Репутация',state.reputation)+metric('🔥 Сервис',state.service)+'</div>'+
  '<div class="role-strip">'+ROLES.map((x,i)=>'<button class="role-tile '+(i===state.role?'active':'')+'" data-home-role="'+i+'"><span>'+x.icon+'</span><b>'+x.name+'</b><small>'+(i===state.role?'Текущая роль':x.need+' XP')+'</small></button>').join('')+'</div>'+
  '<button class="primary home-play" id="start">▶ ИГРАТЬ — '+r.name.toUpperCase()+'</button>'+
