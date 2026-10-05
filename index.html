@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Папа любит мясо — Карьера</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">ПЛМ</div>
+        <div>
+          <div class="brand-title">Папа любит мясо</div>
+          <div class="brand-subtitle">Карьера в бургерной</div>
+        </div>
+      </div>
+      <button id="resetBtn" class="ghost-btn" type="button">Сбросить прогресс</button>
+    </header>
+
+    <main>
+      <section id="menuScreen" class="screen active">
+        <div class="hero-card">
+          <span class="eyebrow">СИМУЛЯТОР СМЕНЫ</span>
+          <h1>Начни с первой должности и вырасти до управляющего</h1>
+          <p>Обслуживай гостей, выполняй задачи смены, зарабатывай опыт и открывай новые должности.</p>
+          <div class="hero-actions">
+            <button id="continueBtn" class="primary-btn" type="button">Продолжить</button>
+            <button id="careerBtn" class="secondary-btn" type="button">Карьера</button>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="stat-card">
+            <span>Текущая должность</span>
+            <strong id="currentRoleLabel">Стажёр</strong>
+          </article>
+          <article class="stat-card">
+            <span>Опыт</span>
+            <strong><span id="xpLabel">0</span> XP</strong>
+          </article>
+          <article class="stat-card">
+            <span>Смен завершено</span>
+            <strong id="shiftCountLabel">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section id="careerScreen" class="screen">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">КАРЬЕРНЫЙ ПУТЬ</span>
+            <h2>Должности</h2>
+          </div>
+          <button class="ghost-btn back-menu" type="button">← В меню</button>
+        </div>
+        <div id="careerList" class="career-list"></div>
+      </section>
+
+      <section id="shiftScreen" class="screen">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">ТЕКУЩАЯ СМЕНА</span>
+            <h2 id="shiftRoleTitle">Стажёр</h2>
+          </div>
+          <button class="ghost-btn back-menu" type="button">Выйти в меню</button>
+        </div>
+
+        <div class="shift-layout">
+          <article class="order-card">
+            <div class="order-topline">
+              <span>Заказ №<b id="orderNumber">101</b></span>
+              <span id="timerLabel">00:30</span>
+            </div>
+            <h3 id="guestTitle">Гость ждёт заказ</h3>
+            <p id="guestText">Собери заказ без ошибок.</p>
+            <div id="orderItems" class="order-items"></div>
+          </article>
+
+          <article class="task-panel">
+            <h3>Действия</h3>
+            <div id="actions" class="actions"></div>
+            <div id="shiftMessage" class="message">Нажми правильное действие, чтобы выполнить заказ.</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
