@@ -17,44 +17,50 @@ function profile(){shell('<div class="section-title"><h2>Профиль</h2></di
 function bind(){document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{view=b.dataset.nav;render()});document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{state.role=+b.dataset.role;save();toast('Режим: '+ROLES[state.role].name);view='home';render()});if($('#start'))$('#start').onclick=startShift;if($('#reset'))$('#reset').onclick=()=>{if(confirm('Удалить весь прогресс и начать заново?')){localStorage.removeItem(KEY);state=JSON.parse(JSON.stringify(base));render()}}}
 function render(){if(view==='home')home();else if(view==='career')career();else if(view==='skills')skills();else profile()}
 const MENU=[
-{cat:'Бургеры',name:'Звезда Инстаграма',icon:'🍔',price:590},{cat:'Бургеры',name:'Тайский ледибой',icon:'🍔',price:620},{cat:'Шаурма',name:'Шаурма классическая',icon:'🌯',price:390},{cat:'Горячее',name:'Крылья',icon:'🍗',price:490},{cat:'Горячее',name:'Рёбра BBQ',icon:'🥩',price:690},{cat:'Горячее',name:'Шашлык куриный',icon:'🍢',price:520},{cat:'Закуски',name:'Картошка фри',icon:'🍟',price:220},{cat:'Закуски',name:'Картошка Айдахо',icon:'🥔',price:240},{cat:'Закуски',name:'Луковые кольца',icon:'🧅',price:260},{cat:'Закуски',name:'Сырные палочки',icon:'🧀',price:350},{cat:'Напитки',name:'Морс смородина',icon:'🥤',price:170},{cat:'Напитки',name:'Морс облепиха',icon:'🥤',price:170},{cat:'Напитки',name:'Лимонад смородина-гибискус',icon:'🧋',price:290},{cat:'Напитки',name:'Лимонад виноград-жасмин',icon:'🧋',price:290},{cat:'Соусы',name:'BBQ',icon:'🥣',price:90},{cat:'Соусы',name:'Горчичный',icon:'🥣',price:90},{cat:'Соусы',name:'Дорблю',icon:'🥣',price:110}];
-function makeOrder(level){
- let count=Math.min(2+Math.floor(level/2),5), pool=[...MENU], items=[];
- while(items.length<count&&pool.length){let i=Math.floor(Math.random()*pool.length);items.push(pool.splice(i,1)[0].name)}
+{cat:'Меню',name:'Звезда Инстаграма',icon:'🍔',price:590},
+{cat:'Меню',name:'Тайский ледибой',icon:'🍔',price:620},
+{cat:'Меню',name:'Шаурма',icon:'🌯',price:390},
+{cat:'Меню',name:'Крылья',icon:'🍗',price:490},
+{cat:'Меню',name:'Рёбра BBQ',icon:'🥩',price:690},
+{cat:'Меню',name:'Картошка фри',icon:'🍟',price:220},
+{cat:'Меню',name:'Морс смородина',icon:'🥤',price:170},
+{cat:'Меню',name:'Лимонад',icon:'🧋',price:290},
+{cat:'Меню',name:'Соус BBQ',icon:'🥣',price:90}
+];
+function makeOrder(round){
+ let count=round<3?2:round<6?3:4,pool=[...MENU],items=[];
+ while(items.length<count){let i=Math.floor(Math.random()*pool.length);items.push(pool.splice(i,1)[0].name)}
  return items;
 }
-function waiter(){shift={type:'waiter',round:1,maxRounds:8,table:1,order:[],selected:[],correct:0,mistakes:0,revenue:0,tips:0,xp:0};nextWaiterOrder()}
+function waiter(){shift={type:'waiter',time:60,round:1,table:1,order:[],selected:[],correct:0,mistakes:0,revenue:0,tips:0,xp:0};nextWaiterOrder();interval=setInterval(tickWaiter,1000)}
 function nextWaiterOrder(){shift.order=makeOrder(shift.round);shift.selected=[];shift.table=1+Math.floor(Math.random()*12);drawWaiter()}
-function sameOrder(a,b){return a.length===b.length&&[...a].sort().every((x,i)=>x===[...b].sort()[i])}
+function sameOrder(a,b){let aa=[...a].sort(),bb=[...b].sort();return aa.length===bb.length&&aa.every((x,i)=>x===bb[i])}
 function drawWaiter(){
- let s=shift,cats=[...new Set(MENU.map(x=>x.cat))];
- shell('<div class="shift-head"><div><small class="muted">СМЕНА ОФИЦИАНТА · ЗАКАЗ '+s.round+'/'+s.maxRounds+'</small><h2>Стол №'+s.table+'</h2></div><span class="tag">✓ '+s.correct+' · ✕ '+s.mistakes+'</span></div>'+
- '<div class="card order-ticket"><b>Гости заказали:</b><div class="order-request">'+s.order.map(x=>'<span>• '+x+'</span>').join('')+'</div></div>'+
- '<div class="card selected-box"><small class="muted">ТЫ ВНЕС В ЗАКАЗ</small><div id="selectedList">'+(s.selected.length?s.selected.map((x,i)=>'<button class="selected-item" data-remove="'+i+'">'+x+' ×</button>').join(''):'<p class="muted">Пока ничего. Выбери позиции ниже.</p>')+'</div></div>'+
- cats.map(cat=>'<div class="menu-category"><h3>'+cat+'</h3><div class="menu-grid">'+MENU.filter(x=>x.cat===cat).map(x=>'<button class="menu-item '+(s.selected.includes(x.name)?'picked':'')+'" data-menu="'+x.name+'"><span>'+x.icon+'</span><b>'+x.name+'</b><small>'+x.price+' ₽</small></button>').join('')+'</div></div>').join('')+
+ let s=shift;
+ shell('<div class="shift-head"><div><small class="muted">СМЕНА ОФИЦИАНТА · НА СКОРОСТЬ</small><h2>Стол №'+s.table+'</h2></div><div class="timer">⏱ '+s.time+'с</div></div>'+
+ '<div class="metrics">'+metric('Верно',s.correct)+metric('Ошибки',s.mistakes)+metric('Серия',Math.max(0,s.correct-s.mistakes))+'</div>'+
+ '<div class="card order-ticket"><b>Собери заказ:</b><div class="order-request">'+s.order.map(x=>'<span>• '+x+'</span>').join('')+'</div></div>'+
+ '<div class="menu-grid waiter-nine">'+MENU.map(x=>'<button class="menu-item '+(s.selected.includes(x.name)?'picked':'')+'" data-menu="'+x.name+'"><span>'+x.icon+'</span><b>'+x.name+'</b></button>').join('')+'</div>'+
+ '<div class="card selected-box compact-selected"><small class="muted">В ЗАКАЗЕ</small><div>'+(s.selected.length?s.selected.join(' · '):'Ничего не выбрано')+'</div></div>'+
  '<div class="waiter-submit"><button class="primary" id="submitOrder">ОТДАТЬ ЗАКАЗ</button></div>');
  document.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>{let n=b.dataset.menu,i=s.selected.indexOf(n);if(i>=0)s.selected.splice(i,1);else s.selected.push(n);drawWaiter()});
- document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{s.selected.splice(+b.dataset.remove,1);drawWaiter()});
  $('#submitOrder').onclick=checkWaiterOrder;
 }
+function tickWaiter(){if(!shift||shift.type!=='waiter')return;shift.time--;if(shift.time<=0)finishWaiter();else drawWaiter()}
 function checkWaiterOrder(){
- let s=shift;
+ let s=shift;if(!s.selected.length)return toast('Сначала выбери позиции');
  if(sameOrder(s.order,s.selected)){
    let sum=s.order.reduce((a,n)=>a+(MENU.find(x=>x.name===n)?.price||0),0),tip=Math.round(sum*.08);
-   s.correct++;s.revenue+=sum;s.tips+=tip;s.xp+=10+s.order.length*2;
-   toast('Идеально! +'+tip+' ₽ чаевых');
+   s.correct++;s.revenue+=sum;s.tips+=tip;s.xp+=8+s.order.length*2;s.time=Math.min(60,s.time+2);s.round++;
+   toast('Верно! +2 секунды');nextWaiterOrder();
  }else{
-   s.mistakes++;s.xp=Math.max(0,s.xp-2);
-   let missing=s.order.filter(x=>!s.selected.includes(x)),extra=s.selected.filter(x=>!s.order.includes(x));
-   toast((missing.length?'Не добавлено: '+missing.join(', '):'')+(missing.length&&extra.length?' · ':'')+(extra.length?'Лишнее: '+extra.join(', '):''));
-   return;
+   s.mistakes++;s.time=Math.max(1,s.time-3);s.selected=[];toast('Ошибка! −3 секунды');drawWaiter();
  }
- if(s.round>=s.maxRounds)finishWaiter();else{s.round++;nextWaiterOrder()}
 }
 function finishWaiter(){
- let s=shift;state.money+=s.tips;state.business+=s.revenue;state.xp+=s.xp+15;state.service=Math.max(0,Math.min(100,state.service+s.correct-s.mistakes*2));state.day++;state.skills.service++;
+ clearInterval(interval);let s=shift;state.money+=s.tips;state.business+=s.revenue;state.xp+=s.xp+10;state.service=Math.max(0,Math.min(100,state.service+s.correct-s.mistakes));state.day++;state.skills.service++;
  if(!state.achievements.includes('Первая смена'))state.achievements.push('Первая смена');save();shift=null;
- shell('<div class="hero"><small>СМЕНА ЗАВЕРШЕНА</small><h1>Заказы собраны</h1><p>'+s.correct+' правильных из '+s.maxRounds+'</p></div><div class="metrics">'+metric('Верно',s.correct)+metric('Ошибки',s.mistakes)+metric('Выручка',s.revenue+' ₽')+metric('Чаевые',s.tips+' ₽')+metric('XP','+'+(s.xp+15))+'</div><button class="primary" id="backHome">На главную</button>');
+ shell('<div class="hero"><small>ВРЕМЯ ВЫШЛО</small><h1>'+s.correct+' заказов!</h1><p>Сколько успел правильно собрать за 60 секунд.</p></div><div class="metrics">'+metric('Верно',s.correct)+metric('Ошибки',s.mistakes)+metric('Выручка',s.revenue+' ₽')+metric('Чаевые',s.tips+' ₽')+metric('XP','+'+(s.xp+10))+'</div><button class="primary" id="backHome">На главную</button>');
  $('#backHome').onclick=()=>{view='home';render()}
 }
 function senior(){shift={type:'senior',time:75,score:0,staff:[['Аня',82],['Саша',25],['Юля',55],['Катя',68]],events:[]};drawSenior();interval=setInterval(()=>{shift.time--;if(Math.random()<.35)shift.events.push({text:['Стол №7 ждёт 8 минут','Новый большой стол','Гость просит старшего','Официант перегружен'][Math.floor(Math.random()*4)],urgent:Math.random()<.5});if(shift.events.length>4)shift.events.shift();if(shift.time<=0)finishGeneric('Старший официант');else drawSenior()},1000)}
