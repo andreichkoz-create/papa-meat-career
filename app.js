@@ -32,15 +32,15 @@ function makeOrder(round){
  while(items.length<count){let i=Math.floor(Math.random()*pool.length);items.push(pool.splice(i,1)[0].name)}
  return items;
 }
-function waiter(){shift={type:'waiter',patience:100,round:1,table:1,order:[],selected:[],correct:0,mistakes:0,revenue:0,tips:0,xp:0};nextWaiterOrder();interval=setInterval(tickWaiter,250)}
-function nextWaiterOrder(){shift.order=makeOrder(shift.round);shift.selected=[];shift.patience=Math.max(45,100-Math.floor((shift.round-1)/3)*8);shift.table=1+Math.floor(Math.random()*12);drawWaiter()}
+function waiter(){shift={type:'waiter',patience:100,round:1,maxOrders:10,table:1,order:[],selected:[],correct:0,mistakes:0,revenue:0,tips:0,xp:0,menu:[...MENU].sort(()=>Math.random()-.5)};nextWaiterOrder();interval=setInterval(tickWaiter,250)}
+function nextWaiterOrder(){if(shift.round>shift.maxOrders)return finishWaiter();shift.order=makeOrder(shift.round);shift.selected=[];shift.patience=Math.max(45,100-Math.floor((shift.round-1)/3)*8);shift.table=1+Math.floor(Math.random()*12);shift.menu=[...MENU].sort(()=>Math.random()-.5);drawWaiter()}
 function sameOrder(a,b){let aa=[...a].sort(),bb=[...b].sort();return aa.length===bb.length&&aa.every((x,i)=>x===bb[i])}
 function drawWaiter(){
  let s=shift;
  shell('<div class="shift-head"><div><small class="muted">СМЕНА ОФИЦИАНТА</small><h2>Стол №'+s.table+'</h2></div><span class="tag">Заказ '+s.round+'</span></div>'+
  '<div class="metrics">'+metric('Верно',s.correct)+metric('Ошибки',s.mistakes)+metric('Чаевые',s.tips+' ₽')+'</div>'+
- '<div class="card order-ticket"><div class="patience-title"><b>Терпение гостя</b><b>'+Math.ceil(s.patience)+'%</b></div><div class="patience guest-patience"><i style="width:'+s.patience+'%"></i></div><div class="order-request">'+s.order.map(x=>'<span class="'+(s.selected.includes(x)?'done':'')+'">• '+x+'</span>').join('')+'</div></div>'+
- '<div class="menu-grid waiter-nine">'+MENU.map(x=>'<button class="menu-item '+(s.selected.includes(x.name)?'picked':'')+'" data-menu="'+x.name+'"><span>'+x.icon+'</span><b>'+x.name+'</b></button>').join('')+'</div>');
+ '<div class="card order-ticket"><div class="patience-title"><b>Терпение гостя</b><b>'+Math.ceil(s.patience)+'%</b></div><div class="patience guest-patience"><i style="width:'+s.patience+'%"></i></div><div class="order-icons">'+s.order.map(n=>{let x=MENU.find(m=>m.name===n);return '<div class="order-icon '+(s.selected.includes(n)?'done':'')+'"><span>'+x.icon+'</span><small>'+x.name+'</small></div>'}).join('')+'</div></div>'+
+ '<div class="menu-grid waiter-nine">'+s.menu.map(x=>'<button class="menu-item '+(s.selected.includes(x.name)?'picked':'')+'" data-menu="'+x.name+'"><span>'+x.icon+'</span><b>'+x.name+'</b></button>').join('')+'</div>');
  document.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>pickWaiterItem(b.dataset.menu));
 }
 function tickWaiter(){if(!shift||shift.type!=='waiter')return;shift.patience=Math.max(0,shift.patience-.7);if(shift.patience<=0){shift.mistakes++;toast('Гость не дождался');shift.round++;nextWaiterOrder()}else drawWaiter()}
