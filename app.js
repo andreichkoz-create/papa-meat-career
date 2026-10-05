@@ -1,118 +1,37 @@
-const roles = [
-  { name: 'Стажёр', need: 0, desc: 'Учишь базовые процессы и стандарты смены.' },
-  { name: 'Официант', need: 100, desc: 'Работаешь с гостями и заказами.' },
-  { name: 'Старший официант', need: 250, desc: 'Помогаешь команде и решаешь сложные ситуации.' },
-  { name: 'Администратор', need: 450, desc: 'Управляешь залом и координируешь смену.' },
-  { name: 'Управляющий', need: 750, desc: 'Отвечаешь за всю точку и развитие команды.' }
-];
-
-const shifts = [
-  {
-    guestTitle:'Первый заказ',
-    guestText:'Гость заказал бургер, картошку и морс. Выбери правильное действие.',
-    items:['Бургер «Звезда Инстаграма»','Картошка фри','Морс смородина'],
-    actions:['Отдать заказ без проверки','Проверить комплектность и отдать гостю','Попросить гостя подождать ещё 20 минут'],
-    correct:1
-  },
-  {
-    guestTitle:'Гость недоволен ожиданием',
-    guestText:'Заказ задержался. Как лучше поступить?',
-    items:['Извиниться','Уточнить статус кухни','Предложить решение'],
-    actions:['Сказать: «Ну кухня же готовит»','Извиниться, уточнить статус и назвать реальное время','Игнорировать гостя'],
-    correct:1
-  },
-  {
-    guestTitle:'Запара в зале',
-    guestText:'Несколько столов зовут одновременно. Что делать?',
-    items:['Расставить приоритеты','Предупредить гостей','Подключить коллегу'],
-    actions:['Исчезнуть на кухне','Спокойно распределить приоритеты и попросить помощь','Обслуживать только самый громкий стол'],
-    correct:1
-  }
-];
-
-const state = JSON.parse(localStorage.getItem('plmCareer') || '{"xp":0,"shifts":0,"role":0,"round":0}');
-
-const screens = [...document.querySelectorAll('.screen')];
-const menuScreen = document.getElementById('menuScreen');
-const careerScreen = document.getElementById('careerScreen');
-const shiftScreen = document.getElementById('shiftScreen');
-
-function save(){ localStorage.setItem('plmCareer', JSON.stringify(state)); }
-function show(screen){ screens.forEach(s=>s.classList.remove('active')); screen.classList.add('active'); }
-function syncRole(){
-  let idx = 0;
-  roles.forEach((role,i)=>{ if(state.xp >= role.need) idx=i; });
-  state.role = Math.max(state.role, idx);
-  save();
-}
-function updateDashboard(){
-  syncRole();
-  document.getElementById('currentRoleLabel').textContent = roles[state.role].name;
-  document.getElementById('xpLabel').textContent = state.xp;
-  document.getElementById('shiftCountLabel').textContent = state.shifts;
-}
-function renderCareer(){
-  syncRole();
-  const wrap = document.getElementById('careerList');
-  wrap.innerHTML='';
-  roles.forEach((role,i)=>{
-    const unlocked = state.xp >= role.need || i <= state.role;
-    const card = document.createElement('div');
-    card.className = `career-card ${!unlocked?'locked':''} ${i===state.role?'current':''}`;
-    card.innerHTML = `
-      <div class="role-index">${i+1}</div>
-      <div><strong>${role.name}</strong><p>${role.desc}</p></div>
-      <span class="role-status">${i===state.role?'Текущая':unlocked?'Открыта':`Нужно ${role.need} XP`}</span>`;
-    wrap.appendChild(card);
-  });
-}
-function renderShift(){
-  syncRole();
-  const round = shifts[state.round % shifts.length];
-  document.getElementById('shiftRoleTitle').textContent = roles[state.role].name;
-  document.getElementById('orderNumber').textContent = 101 + state.shifts;
-  document.getElementById('guestTitle').textContent = round.guestTitle;
-  document.getElementById('guestText').textContent = round.guestText;
-  const items = document.getElementById('orderItems');
-  items.innerHTML = round.items.map(x=>`<div class="item">${x}</div>`).join('');
-  const actions = document.getElementById('actions');
-  actions.innerHTML='';
-  round.actions.forEach((action,i)=>{
-    const btn=document.createElement('button');
-    btn.className='action-btn';
-    btn.textContent=action;
-    btn.onclick=()=>handleAction(i,round.correct);
-    actions.appendChild(btn);
-  });
-  const msg=document.getElementById('shiftMessage');
-  msg.className='message';
-  msg.textContent='Нажми правильное действие, чтобы выполнить заказ.';
-}
-function handleAction(index, correct){
-  const msg=document.getElementById('shiftMessage');
-  if(index === correct){
-    state.xp += 50;
-    state.shifts += 1;
-    state.round += 1;
-    syncRole();
-    save();
-    msg.className='message success';
-    msg.textContent=`Отлично! +50 XP. Текущая должность: ${roles[state.role].name}.`;
-    document.querySelectorAll('.action-btn').forEach(b=>b.disabled=true);
-    setTimeout(()=>{ renderShift(); updateDashboard(); }, 900);
-  } else {
-    msg.className='message error';
-    msg.textContent='Не лучший вариант. Попробуй ещё раз.';
-  }
-}
-
-document.getElementById('continueBtn').onclick=()=>{ renderShift(); show(shiftScreen); };
-document.getElementById('careerBtn').onclick=()=>{ renderCareer(); show(careerScreen); };
-document.querySelectorAll('.back-menu').forEach(btn=>btn.onclick=()=>{ updateDashboard(); show(menuScreen); });
-document.getElementById('resetBtn').onclick=()=>{
-  localStorage.removeItem('plmCareer');
-  Object.assign(state,{xp:0,shifts:0,role:0,round:0});
-  updateDashboard(); renderCareer(); show(menuScreen);
-};
-
-updateDashboard();
+const ROLES=[
+{name:'Официант',need:0,icon:'🍔'},{name:'Старший официант',need:100,icon:'⭐'},{name:'Администратор',need:240,icon:'📋'},{name:'Управляющий кафе',need:450,icon:'🏪'},{name:'Территориальный',need:800,icon:'🗺️'},{name:'Управляющий сетью',need:1250,icon:'👑'}];
+const DEV_MODE=true, KEY='plmCareerV2';
+const base={role:0,xp:0,day:1,money:0,business:0,service:80,reputation:50,authority:10,skills:{service:1,leadership:1,management:1,finance:1,marketing:1,team:1},achievements:[]};
+let state=Object.assign({},base,JSON.parse(localStorage.getItem(KEY)||'{}')); state.skills=Object.assign({},base.skills,state.skills||{});
+let view='home', shift=null, interval=null, sheet=null;
+const $=s=>document.querySelector(s), save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+function toast(t){let x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),1800)}
+function metric(k,v){return '<div class="metric"><span>'+k+'</span><b>'+v+'</b></div>'}
+function header(){return '<header class="top"><div class="brand"><img class="logo" src="assets/logo.png" onerror="this.outerHTML=\'<div class=&quot;logo logo-fallback&quot;>ПЛМ</div>\'"><div><b>Папа любит мясо</b><small>Карьера</small></div></div><span class="tag">День '+state.day+'</span></header>'}
+function nav(){if(shift)return '';let a=[['home','⌂','Главная'],['career','↗','Карьера'],['skills','★','Навыки'],['profile','●','Профиль']];return '<nav class="nav">'+a.map(x=>'<button data-nav="'+x[0]+'" class="'+(view===x[0]?'active':'')+'"><b>'+x[1]+'</b>'+x[2]+'</button>').join('')+'</nav>'}
+function shell(content){$('#app').innerHTML=header()+'<main class="page">'+content+'</main>'+nav();bind()}
+function home(){let r=ROLES[state.role], next=ROLES[state.role+1];shell('<section class="hero"><small>ТЕКУЩАЯ ДОЛЖНОСТЬ</small><h1>'+r.icon+' '+r.name+'</h1><p>'+(next?'До следующей ступени: '+Math.max(0,next.need-state.xp)+' XP':'Ты на вершине карьеры')+'</p></section><div class="metrics">'+metric('XP',state.xp)+metric('Деньги',state.money+' ₽')+metric('Репутация',state.reputation)+metric('Сервис',state.service)+metric('Авторитет',state.authority)+metric('День',state.day)+'</div><button class="primary" id="start">🔥 НАЧАТЬ СМЕНУ</button><div class="section-title"><h2>Карьерный прогресс</h2></div><div class="card"><b>'+r.name+'</b><div class="progress"><i style="width:'+Math.min(100,next?state.xp/next.need*100:100)+'%"></i></div><p class="muted">'+(next?'Следующая должность — '+next.name+' с '+next.need+' XP':'Максимальная должность')+'</p></div>')}
+function career(){shell('<div class="section-title"><h2>Карьера</h2><span class="tag">'+state.xp+' XP</span></div>'+ROLES.map((r,i)=>'<div class="card career-card '+(i===state.role?'current ':'')+(state.xp<r.need&&!DEV_MODE?'locked':'')+'"><div class="num">'+r.icon+'</div><div><b>'+r.name+'</b><div class="muted">'+r.need+' XP</div></div>'+(DEV_MODE?'<button class="tiny" data-role="'+i+'">Тест</button>':'<span class="tag">'+(state.xp>=r.need?'Доступно':'Закрыто')+'</span>')+'</div>').join(''))}
+function skills(){let names={service:'Сервис',leadership:'Лидерство',management:'Управление',finance:'Финансы',marketing:'Маркетинг',team:'Команда'};shell('<div class="section-title"><h2>Навыки</h2></div>'+Object.entries(state.skills).map(([k,v])=>'<div class="card"><b>'+names[k]+'</b><span class="tag" style="float:right">ур. '+v+'</span><div class="progress"><i style="width:'+Math.min(100,v*12)+'%"></i></div></div>').join(''))}
+function profile(){shell('<div class="section-title"><h2>Профиль</h2></div><div class="card"><h3>'+ROLES[state.role].icon+' '+ROLES[state.role].name+'</h3><p class="muted">Личные деньги: '+state.money+' ₽<br>Бизнес: '+state.business+' ₽<br>Достижений: '+state.achievements.length+'</p></div><button class="danger" id="reset">Новая игра</button>')}
+function bind(){document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{view=b.dataset.nav;render()});document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{state.role=+b.dataset.role;save();toast('Режим: '+ROLES[state.role].name);view='home';render()});if($('#start'))$('#start').onclick=startShift;if($('#reset'))$('#reset').onclick=()=>{if(confirm('Удалить весь прогресс и начать заново?')){localStorage.removeItem(KEY);state=JSON.parse(JSON.stringify(base));render()}}}
+function render(){if(view==='home')home();else if(view==='career')career();else if(view==='skills')skills();else profile()}
+const TABLE_STATES=[['arrived','Гости пришли','ПОДОЙТИ'],['choosing','Выбирают меню',null],['ready','Готовы заказать','ПРИНЯТЬ ЗАКАЗ'],['cooking','Кухня готовит',null],['dish','Блюдо готово','ОТНЕСТИ БЛЮДО'],['eating','Едят',null],['bill','Просят счёт','ПРИНЕСТИ СЧЁТ'],['pay','Ждут оплаты','ПРИНЯТЬ ОПЛАТУ'],['clean','Нужно убрать','УБРАТЬ СТОЛ']];
+function newTable(i){return{id:i+1,state:'free',patience:100,wait:0,guests:0,order:''}}
+function spawn(t){t.state='arrived';t.patience=100;t.wait=0;t.guests=1+Math.floor(Math.random()*4);t.order=['Бургер + фри','Шаурма + морс','Крылья + фри','Рёбра + морс'][Math.floor(Math.random()*4)]}
+function waiter(){shift={type:'waiter',time:90,tables:Array.from({length:6},(_,i)=>newTable(i)),served:0,revenue:0,tips:0,complaints:0,xp:0,tick:0};spawn(shift.tables[0]);spawn(shift.tables[1]);drawWaiter();interval=setInterval(tickWaiter,1000)}
+function stateInfo(t){if(t.state==='free')return['Свободен',''];let x=TABLE_STATES.find(s=>s[0]===t.state);return[x?x[1]:t.state,x&&x[2]?x[2]:'']}
+function drawWaiter(){let s=shift;shell('<div class="shift-head"><div><small class="muted">СМЕНА ОФИЦИАНТА</small><h2>Зал</h2></div><div class="timer">⏱ '+s.time+'с</div></div><div class="metrics">'+metric('Гостей',s.served)+metric('Выручка',s.revenue+' ₽')+metric('Чаевые',s.tips+' ₽')+'</div><div class="tables">'+s.tables.map(t=>{let inf=stateInfo(t);return '<button class="table '+(t.state==='free'?'free ':'')+(t.patience<35?'urgent':'')+'" data-table="'+t.id+'"><h3>Стол '+t.id+'</h3><div class="need">'+inf[0]+'</div>'+(t.state!=='free'?'<small>👥 '+t.guests+' · '+t.order+'</small><div class="patience"><i style="width:'+t.patience+'%"></i></div><b>'+ (inf[1]||'Ожидание')+'</b>':'<b>Свободен</b>')+'</button>'}).join('')+'</div><button class="secondary" id="finish" style="width:100%;margin-top:14px">Завершить смену</button>');document.querySelectorAll('[data-table]').forEach(b=>b.onclick=()=>openTable(+b.dataset.table));$('#finish').onclick=finishWaiter}
+function openTable(id){let t=shift.tables.find(x=>x.id===id);if(t.state==='free')return;let inf=stateInfo(t);if(!inf[1])return toast('Сейчас гости не требуют действия');sheet=t;let div=document.createElement('div');div.className='action-sheet';div.id='sheet';div.innerHTML='<button class="close">×</button><h3>Стол '+t.id+'</h3><p class="muted">'+inf[0]+' · терпение '+t.patience+'%</p><div class="actions"><button id="doAction">'+inf[1]+'</button></div>';document.body.appendChild(div);div.querySelector('.close').onclick=()=>div.remove();div.querySelector('#doAction').onclick=()=>{advanceTable(t);div.remove();drawWaiter()}}
+function advanceTable(t){let map={arrived:'choosing',ready:'cooking',dish:'eating',bill:'pay',pay:'clean',clean:'free'};if(t.state==='ready')t.order=t.order||'Бургер';if(t.state==='pay'){let rev=t.guests*(450+Math.floor(Math.random()*250));shift.revenue+=rev;let tip=Math.round(rev*(t.patience/100)*.08);shift.tips+=tip;shift.served+=t.guests;shift.xp+=8}else if(t.state==='clean'){Object.assign(t,newTable(t.id-1))}else t.state=map[t.state]||t.state;t.wait=0}
+function tickWaiter(){if(!shift||shift.type!=='waiter')return;shift.time--;shift.tick++;shift.tables.forEach(t=>{if(t.state==='free')return;t.wait++;if(['arrived','ready','dish','bill','pay'].includes(t.state)){t.patience=Math.max(0,t.patience-2);if(t.patience===0){shift.complaints++;Object.assign(t,newTable(t.id-1))}}if(t.state==='choosing'&&t.wait>4){t.state='ready';t.wait=0}if(t.state==='cooking'&&t.wait>6){t.state='dish';t.wait=0}if(t.state==='eating'&&t.wait>7){t.state='bill';t.wait=0}});if(shift.tick%7===0){let f=shift.tables.filter(t=>t.state==='free');if(f.length)spawn(f[Math.floor(Math.random()*f.length)])}if(shift.time<=0)finishWaiter();else drawWaiter()}
+function finishWaiter(){clearInterval(interval);let s=shift;state.money+=s.tips;state.business+=s.revenue;state.xp+=s.xp+15;state.service=Math.max(0,Math.min(100,state.service+2-s.complaints*3));state.day++;state.skills.service++;if(!state.achievements.includes('Первая смена'))state.achievements.push('Первая смена');save();shift=null;shell('<div class="hero"><small>СМЕНА ЗАВЕРШЕНА</small><h1>Результат</h1></div><div class="metrics">'+metric('Гостей',s.served)+metric('Выручка',s.revenue+' ₽')+metric('Чаевые',s.tips+' ₽')+metric('Жалобы',s.complaints)+metric('XP','+'+(s.xp+15))+'</div><button class="primary" id="backHome">На главную</button>');$('#backHome').onclick=()=>{view='home';render()}}
+function senior(){shift={type:'senior',time:75,score:0,staff:[['Аня',82],['Саша',25],['Юля',55],['Катя',68]],events:[]};drawSenior();interval=setInterval(()=>{shift.time--;if(Math.random()<.35)shift.events.push({text:['Стол №7 ждёт 8 минут','Новый большой стол','Гость просит старшего','Официант перегружен'][Math.floor(Math.random()*4)],urgent:Math.random()<.5});if(shift.events.length>4)shift.events.shift();if(shift.time<=0)finishGeneric('Старший официант');else drawSenior()},1000)}
+function drawSenior(){let s=shift;shell('<div class="shift-head"><h2>Управление залом</h2><div class="timer">'+s.time+'с</div></div>'+s.staff.map((e,i)=>'<div class="card employee"><b>'+e[0]+'</b><span>'+e[1]+'% загрузки</span><div class="progress"><i style="width:'+e[1]+'%"></i></div><button class="tiny" data-help="'+i+'">Перераспределить</button></div>').join('')+'<div class="section-title"><h2>События</h2></div>'+s.events.map((e,i)=>'<div class="card event '+(e.urgent?'urgent':'')+'"><b>⚠ '+e.text+'</b><div class="choice"><button data-event="'+i+'">Решить сейчас</button></div></div>').join(''));document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>{let e=s.staff[+b.dataset.help];e[1]=Math.max(10,e[1]-25);s.score+=4;drawSenior()});document.querySelectorAll('[data-event]').forEach(b=>b.onclick=()=>{s.events.splice(+b.dataset.event,1);s.score+=6;drawSenior()})}
+const ADMIN_EVENTS=[['😠 Холодный бургер',['Заменить блюдо','Скидка 20%','Отказать']],['🛵 Курьер ждёт 15 минут',['Ускорить кухню','Компенсировать ожидание','Оставить как есть']],['👨‍🍳 Конфликт кухни и зала',['Развести и поговорить','Поддержать кухню','Поддержать зал']],['❌ Сотрудник не вышел',['Вызвать замену','Перераспределить зал','Работать меньшим составом']],['🥩 Закончилась позиция',['Стоп-лист и замена','Срочная закупка','Продолжать продавать']]];
+function admin(){shift={type:'admin',time:80,score:0,events:[],guests:75,team:70,kitchen:70,delivery:70,revenue:0};drawAdmin();interval=setInterval(()=>{shift.time--;shift.revenue+=Math.floor(200+Math.random()*400);if(Math.random()<.28&&shift.events.length<4){let e=ADMIN_EVENTS[Math.floor(Math.random()*ADMIN_EVENTS.length)];shift.events.push({title:e[0],choices:e[1],age:0})}shift.events.forEach(e=>e.age++);if(shift.events.some(e=>e.age>14)){shift.guests-=3;shift.team-=2}if(shift.time<=0)finishGeneric('Администратор');else drawAdmin()},1000)}
+function drawAdmin(){let s=shift;shell('<div class="shift-head"><h2>Смена администратора</h2><div class="timer">'+s.time+'с</div></div><div class="metrics">'+metric('Гости',s.guests)+metric('Команда',s.team)+metric('Кухня',s.kitchen)+metric('Доставка',s.delivery)+metric('Выручка',s.revenue+' ₽')+'</div><div class="section-title"><h2>Активные проблемы</h2></div>'+(s.events.length?s.events.map((e,i)=>'<div class="card event '+(e.age>8?'urgent':'')+'"><b>'+e.title+'</b><p class="muted">Срочность: '+e.age+'/15</p><div class="choice">'+e.choices.map((c,j)=>'<button data-choice="'+i+','+j+'">'+c+'</button>').join('')+'</div></div>').join(''):'<div class="card muted">Пока спокойно. Следи за сменой.</div>'));document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{let [i,j]=b.dataset.choice.split(',').map(Number);s.events.splice(i,1);s.score+=5-j;s.guests+=j===0?3:j===1?1:-4;s.team+=j===0?1:j===2?-2:0;drawAdmin()})}
+function finishGeneric(name){clearInterval(interval);let s=shift;state.xp+=20+s.score;state.money+=300+s.score*10;state.business+=s.revenue||0;state.day++;state.authority+=2;state.skills.leadership++;save();shift=null;shell('<div class="hero"><small>СМЕНА ЗАВЕРШЕНА</small><h1>'+name+'</h1><p>Решения: '+s.score+' очков эффективности</p></div><div class="metrics">'+metric('XP','+'+(20+s.score))+metric('Бонус',(300+s.score*10)+' ₽')+'</div><button class="primary" id="backHome">На главную</button>');$('#backHome').onclick=()=>{view='home';render()}}
+function managerMode(title){shift={type:'manager'};shell('<div class="hero"><small>УПРАВЛЕНЧЕСКИЙ РЕЖИМ</small><h1>'+title+'</h1><p>Базовый режим подготовлен. Следующий этап — экономика, персонал, маркетинг и симуляция дня.</p></div><div class="card"><b>Режим находится в разработке</b><p class="muted">Кнопка не является мёртвой: полноценную механику добавим после теста первых трёх должностей.</p></div><button class="primary" id="backHome">Вернуться</button>');$('#backHome').onclick=()=>{shift=null;view='home';render()}}
+function startShift(){if(state.role===0)waiter();else if(state.role===1)senior();else if(state.role===2)admin();else managerMode(ROLES[state.role].name)}
+render();
